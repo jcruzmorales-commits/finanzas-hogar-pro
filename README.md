@@ -173,3 +173,238 @@ class _ResumenCard extends StatelessWidget {
 }
 flutter analyze
 flutter run
+ACTIVO
+  ├── Efectivo
+  ├── Bancos
+  ├── Ahorros
+  └── Inversiones
+
+PASIVO
+  ├── Tarjetas de crédito
+  ├── Préstamos
+  └── Hipotecas
+
+INGRESOS
+  ├── Salarios
+  ├── Negocios
+  └── Otros
+
+GASTOS
+  ├── Alimentación
+  ├── Vivienda
+  ├── Transporte
+  └── Otros
+  accounts
+categories
+transactions
+transfers
+budgets
+debts
+assets
+goals
+pubspec.yaml: dependencies:
+  flutter:
+    sdk: flutter
+
+  sqflite: ^2.3.3+1
+  path: ^1.9.0
+  lib/
+├── database/
+│   └── app_database.dart
+├── models/
+│   ├── account.dart
+│   ├── category.dart
+│   └── transaction.dart
+├── services/
+│   └── finance_service.dart
+└── screens/
+    ├── dashboard/
+    ├── accounts/
+    └── movements/
+    lib/database/app_database.dart: import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+
+class AppDatabase {
+  static Database? _database;
+
+  static Future<Database> get database async {
+    if (_database != null) return _database!;
+
+    _database = await _initDatabase();
+    return _database!;
+  }
+
+  static Future<Database> _initDatabase() async {
+    final dbPath = await getDatabasesPath();
+
+    final path = join(
+      dbPath,
+      'finanzas_hogar_pro.db',
+    );
+
+    return openDatabase(
+      path,
+      version: 1,
+      onCreate: (db, version) async {
+        await db.execute('''
+          CREATE TABLE accounts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            type TEXT NOT NULL,
+            currency TEXT NOT NULL DEFAULT 'CRC',
+            initial_balance REAL NOT NULL DEFAULT 0,
+            active INTEGER NOT NULL DEFAULT 1
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE categories (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            type TEXT NOT NULL,
+            active INTEGER NOT NULL DEFAULT 1
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id INTEGER NOT NULL,
+            category_id INTEGER,
+            type TEXT NOT NULL,
+            amount REAL NOT NULL,
+            description TEXT,
+            transaction_date TEXT NOT NULL,
+            FOREIGN KEY (account_id)
+              REFERENCES accounts(id),
+            FOREIGN KEY (category_id)
+              REFERENCES categories(id)
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE transfers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_account_id INTEGER NOT NULL,
+            destination_account_id INTEGER NOT NULL,
+            amount REAL NOT NULL,
+            transfer_date TEXT NOT NULL,
+            description TEXT,
+            FOREIGN KEY (source_account_id)
+              REFERENCES accounts(id),
+            FOREIGN KEY (destination_account_id)
+              REFERENCES accounts(id)
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE budgets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            category_id INTEGER NOT NULL,
+            amount REAL NOT NULL,
+            month INTEGER NOT NULL,
+            year INTEGER NOT NULL,
+            FOREIGN KEY (category_id)
+              REFERENCES categories(id)
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE debts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            original_amount REAL NOT NULL,
+            balance REAL NOT NULL,
+            interest_rate REAL NOT NULL DEFAULT 0,
+            payment REAL NOT NULL DEFAULT 0,
+            due_date TEXT
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE assets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            type TEXT NOT NULL,
+            purchase_value REAL NOT NULL,
+            current_value REAL NOT NULL
+          )
+        ''');
+
+        await db.execute('''
+          CREATE TABLE goals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            target_amount REAL NOT NULL,
+            saved_amount REAL NOT NULL DEFAULT 0,
+            target_date TEXT
+          )
+        ''');
+      },
+    );
+  }
+}
+lib/services/finance_service.dart: import '../database/app_database.dart';
+
+class FinanceService {
+  Future<int> createAccount({
+    required String name,
+    required String type,
+    required double initialBalance,
+  }) async {
+    final db = await AppDatabase.database;
+
+    return db.insert(
+      'accounts',
+      {
+        'name': name,
+        'type': type,
+        'currency': 'CRC',
+        'initial_balance': initialBalance,
+        'active': 1,
+      },
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getAccounts() async {
+    final db = await AppDatabase.database;
+
+    return db.query(
+      'accounts',
+      where: 'active = ?',
+      whereArgs: [1],
+      orderBy: 'name ASC',
+    );
+  }
+
+  Future<int> createTransaction({
+    required int accountId,
+    int? categoryId,
+    required String type,
+    required double amount,
+    required String description,
+  }) async {
+    final db = await AppDatabase.database;
+
+    return db.insert(
+      'transactions',
+      {
+        'account_id': accountId,
+        'category_id': categoryId,
+        'type': type,
+        'amount': amount,
+        'description': description,
+        'transaction_date':
+            DateTime.now().toIso8601String(),
+      },
+    );
+  }
+}
+Saldo actual =
+Saldo inicial
++ ingresos
+- gastos
++ transferencias recibidas
+- transferencias enviadas
+- flutter analyze
+- flutter run
