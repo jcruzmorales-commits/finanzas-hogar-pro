@@ -408,3 +408,69 @@ Saldo inicial
 - transferencias enviadas
 - flutter analyze
 - flutter run
+transaction_splits
+CREATE TABLE transaction_splits (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    transaction_id INTEGER NOT NULL,
+    account_id INTEGER NOT NULL,
+    amount REAL NOT NULL,
+    entry_type TEXT NOT NULL, -- DEBIT o CREDIT
+    FOREIGN KEY(transaction_id) REFERENCES transactions(id),
+    FOREIGN KEY(account_id) REFERENCES accounts(id)
+
+);Dashboard
+│
+├── Cuentas
+│     ├── Lista
+│     ├── Nueva cuenta
+│     └── Editar cuenta
+│
+├── Movimientos
+│     ├── Lista
+│     ├── Nuevo ingreso
+│     ├── Nuevo gasto
+│     └── Transferencia
+│
+└── Configuración
+Saldo Disponible
+
+Ingresos      Gastos
+
+Ahorro        Deudas
+
+Patrimonio    Presupuesto
+Banco Nacional
+
+Banco
+
+CRC
+
+₡1 250 000
+
+Activo
+users
+------
+id
+name
+email
+password_hash
+created_at
+user_id
+accounts
+transactions
+attachments
+attachments
+------------
+id
+transaction_id
+file_path
+file_type
+created_at
+updated_at
+deleted_at
+currencies
+-----------
+CRC
+USD
+EUR
+...
